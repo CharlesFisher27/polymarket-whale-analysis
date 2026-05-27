@@ -10,12 +10,6 @@ QSS 20 Final Project — Charlie Fisher, Dartmouth College
 
 This project tests whether whale commenters (users with ≥$5,000 positions) cause larger price movements than retail commenters on Polymarket prediction markets. Using an event-study design, I measure the absolute price change in the 2 hours following each comment and compare whales vs. retail across 200+ markets.
 
-**Key findings:**
-- Whale comments produce ~1.8× larger absolute price moves than retail comments
-- The effect is larger in higher-volume markets (r = +0.66, p = 0.02)
-- Only 47% of whale comments are sentiment-consistent with their position — no evidence of "talking their book"
-- Zero pump-and-dump signals detected
-
 ---
 
 ## Scripts
