@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Do Whales Move Prediction Markets? | QSS 20 Final Project</title>
+  <style>
+    :root {
+      --blue:   #1a4fa0;
+      --red:    #c0392b;
+      --light:  #f5f7fa;
+      --border: #dde2ea;
+      --text:   #1c2233;
+      --muted:  #5a6478;
+      --max:    860px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Georgia', serif; color: var(--text); background: #fff; line-height: 1.7; }
+
+    nav { background: var(--blue); color: #fff; padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 52px; position: sticky; top: 0; z-index: 100; }
+    nav .brand { font-size: 1rem; font-weight: bold; letter-spacing: .02em; }
+    nav a { color: rgba(255,255,255,.85); text-decoration: none; font-size: .88rem; margin-left: 1.6rem; font-family: 'Arial', sans-serif; }
+    nav a:hover { color: #fff; }
+
+    header { background: linear-gradient(135deg, #0d2b6b 0%, #1a4fa0 60%, #2563b8 100%); color: #fff; padding: 5rem 2rem 4rem; text-align: center; }
+    header h1 { font-size: 2.3rem; max-width: 720px; margin: 0 auto .9rem; line-height: 1.25; }
+    header .sub { font-size: 1.05rem; opacity: .85; max-width: 580px; margin: 0 auto 2rem; font-family: 'Arial', sans-serif; }
+    .hero-stats { display: flex; justify-content: center; gap: 2.5rem; flex-wrap: wrap; margin-top: 1.5rem; }
+    .stat { background: rgba(255,255,255,.12); border-radius: 8px; padding: .8rem 1.4rem; min-width: 130px; }
+    .stat .num { font-size: 1.7rem; font-weight: bold; display: block; }
+    .stat .lbl { font-size: .78rem; opacity: .8; font-family: 'Arial', sans-serif; letter-spacing: .04em; text-transform: uppercase; }
+
+    main { max-width: var(--max); margin: 0 auto; padding: 0 2rem 4rem; }
+    section { margin-top: 3.5rem; }
+    h2 { font-size: 1.45rem; color: var(--blue); border-bottom: 2px solid var(--border); padding-bottom: .4rem; margin-bottom: 1.2rem; }
+    h3 { font-size: 1.1rem; margin: 1.4rem 0 .5rem; }
+    p { margin-bottom: .9rem; font-size: .97rem; }
+
+    .findings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.2rem; margin-top: 1rem; }
+    .finding { background: var(--light); border-left: 4px solid var(--blue); border-radius: 4px; padding: 1rem 1.1rem; }
+    .finding.null { border-color: #7f8c9a; }
+    .finding.positive { border-color: #16a085; }
+    .finding .tag { font-size: .72rem; font-family: 'Arial', sans-serif; font-weight: bold; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: .3rem; }
+    .finding strong { font-size: 1.05rem; display: block; margin-bottom: .3rem; }
+    .finding p { font-size: .88rem; margin: 0; color: var(--muted); }
+
+    .figure { margin: 2rem 0; background: var(--light); border: 1px solid var(--border); border-radius: 6px; padding: 1.2rem; }
+    .figure img { width: 100%; height: auto; display: block; border-radius: 4px; }
+    .figure figcaption { font-size: .84rem; color: var(--muted); margin-top: .8rem; font-family: 'Arial', sans-serif; line-height: 1.5; }
+    .figure figcaption strong { color: var(--text); }
+
+    .table-wrap { overflow-x: auto; margin: 1.5rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: .88rem; font-family: 'Arial', sans-serif; }
+    thead tr { background: var(--blue); color: #fff; }
+    th { padding: .55rem .8rem; text-align: center; font-weight: 600; }
+    th:first-child { text-align: left; }
+    td { padding: .45rem .8rem; border-bottom: 1px solid var(--border); text-align: center; }
+    td:first-child { text-align: left; font-weight: 500; }
+    tr.section-head td { background: var(--light); font-style: italic; color: var(--muted); font-size: .82rem; }
+    tr.fit-row td { border-top: 2px solid var(--border); background: var(--light); }
+    .sig1::after { content: '*'; }
+    .sig2::after { content: '**'; }
+    .sig3::after { content: '***'; }
+    .se { font-size: .8rem; color: var(--muted); }
+
+    .method-steps { counter-reset: step; list-style: none; padding: 0; }
+    .method-steps li { counter-increment: step; display: flex; gap: .9rem; margin-bottom: 1rem; font-size: .96rem; }
+    .method-steps li::before { content: counter(step); background: var(--blue); color: #fff; font-weight: bold; font-family: 'Arial', sans-serif; border-radius: 50%; width: 28px; height: 28px; min-width: 28px; display: flex; align-items: center; justify-content: center; font-size: .82rem; margin-top: .15rem; }
+
+    .callout { background: #fff8e1; border-left: 4px solid #f39c12; border-radius: 4px; padding: 1rem 1.2rem; margin: 1.2rem 0; font-size: .92rem; }
+    .callout strong { color: #b7770d; }
+
+    .market-table { width: 100%; border-collapse: collapse; font-size: .86rem; font-family: 'Arial', sans-serif; margin-top: 1rem; }
+    .market-table th { background: #edf2fb; padding: .5rem .7rem; text-align: left; border-bottom: 2px solid var(--border); }
+    .market-table td { padding: .45rem .7rem; border-bottom: 1px solid var(--border); }
+    .market-table tr:last-child td { border-bottom: none; }
+    .chip { display: inline-block; padding: .15rem .5rem; border-radius: 20px; font-size: .74rem; font-weight: bold; }
+    .chip.high { background: #d4edda; color: #155724; }
+    .chip.med { background: #fff3cd; color: #856404; }
+
+    footer { background: var(--light); border-top: 1px solid var(--border); padding: 2rem; text-align: center; font-size: .84rem; color: var(--muted); font-family: 'Arial', sans-serif; }
+    footer a { color: var(--blue); text-decoration: none; }
+
+    @media (max-width: 600px) {
+      header h1 { font-size: 1.6rem; }
+      .hero-stats { gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">Polymarket Whale Analysis</span>
+  <div>
+    <a href="#question">Question</a>
+    <a href="#data">Data</a>
+    <a href="#methods">Methods</a>
+    <a href="#results">Results</a>
+    <a href="#discussion">Discussion</a>
+    <a href="https://github.com/CharlesFisher27/polymarket-whale-analysis" target="_blank">GitHub</a>
+  </div>
+</nav>
+
+<header>
+  <h1>Do Whales Move Prediction Markets?</h1>
+  <p class="sub">QSS 20 Final Project — Charlie Fisher, Dartmouth College, 2026. An observational event study of whether large-position holders ("whales") comment strategically on Polymarket, and whether those comments are associated with subsequent price moves.</p>
+  <div class="hero-stats">
+    <div class="stat"><span class="num">183</span><span class="lbl">Markets analyzed</span></div>
+    <div class="stat"><span class="num">87</span><span class="lbl">Markets with whales</span></div>
+    <div class="stat"><span class="num">4,910</span><span class="lbl">Whale comment events</span></div>
+    <div class="stat"><span class="num">2.2×</span><span class="lbl">Whale vs retail |Δp|</span></div>
+  </div>
+</header>
+
+<main>
+
+  <!-- QUESTION -->
+  <section id="question">
+    <h2>The Question</h2>
+    <p>
+      Prediction markets like Polymarket let participants bet real money on future events. Users with large
+      positions — sometimes called <em>whales</em> — can also post public comments visible to all traders.
+      This project asks whether those comments are associated with subsequent price moves, whether the
+      association is stronger in thinner markets (a signature of manipulation), and whether whale sentiment
+      tends to align with their financial position in a way that suggests strategic behavior.
+    </p>
+    <p>
+      These are difficult questions to answer observationally. The main threat to any causal interpretation
+      is confounding: whales may simply be more likely to comment when news breaks, and that same news
+      moves prices. Separating a comment effect from an underlying event effect requires design choices
+      that this study can partially but not fully address.
+    </p>
+
+    <div class="findings-grid" style="margin-top:1.5rem">
+      <div class="finding positive">
+        <div class="tag">Result 1</div>
+        <strong>Whale periods have larger price moves</strong>
+        <p>Mean |Δp| = 0.21 around whale comments vs. 0.10 for retail — about 2.2× larger. Whether this reflects a comment effect or selective timing is unclear from this design alone.</p>
+      </div>
+      <div class="finding positive">
+        <div class="tag">Result 2</div>
+        <strong>Gap is largest in the biggest markets</strong>
+        <p>The whale–retail gap grows with market volume, not shrinks. This is inconsistent with thin-order-book manipulation but consistent with whales concentrating activity around major news events in high-profile markets.</p>
+      </div>
+      <div class="finding null">
+        <div class="tag">Result 3</div>
+        <strong>Sentiment–position consistency near chance</strong>
+        <p>Among 4,910 whale events with known holder direction, comment sentiment was consistent with the commenter's position 52.8% of the time. This is slightly above 50% but far from consistent strategic "talking their book."</p>
+      </div>
+      <div class="finding null">
+        <div class="tag">Result 4</div>
+        <strong>Volume interaction: not significant</strong>
+        <p>The whale × log(volume) coefficient in M3 is near zero (p = 0.85). There is no evidence that whale comments have larger effects in thinner markets, which is what a herding or manipulation story would predict.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- DATA -->
+  <section id="data">
+    <h2>Data</h2>
+    <p>
+      Data were assembled from three Polymarket public REST APIs: the <strong>Gamma API</strong> (comments,
+      market metadata), the <strong>CLOB API</strong> (hourly YES-token price series),
+      and the <strong>Data API</strong> (per-market top-200 holder positions). Markets span
+      <strong>September 2023 through June 2026</strong> across elections, geopolitics, crypto, and politics.
+    </p>
+    <p>
+      <strong>Whale definition:</strong> Any commenter whose wallet appears in the market's top-200 holder
+      list with a position ≥ $5,000 USD. Of 503,662 total events, 4,910 (1.0%) are whale events across 87 markets.
+      Mean whale position: $83,039 (median: $34,186).
+    </p>
+    <p>
+      Starting from 2,677,233 raw comment events across 470 markets, three filters reduce the sample:
+      (1) events with no matchable price observation within ±7 days are dropped;
+      (2) events where the pre-comment price is &lt;0.10 or &gt;0.90 are removed (convergence filter);
+      (3) markets with std(|Δp|) &lt; 0.001 are dropped for having effectively constant price histories.
+      Fed Policy markets are excluded as they show no meaningful whale activity.
+      The final sample is <strong>503,662 events from 183 markets</strong>.
+    </p>
+
+    <table class="market-table">
+      <thead>
+        <tr>
+          <th>Market Type</th>
+          <th>Example Markets</th>
+          <th>Markets</th>
+          <th>With Whales</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>US Elections</td>
+          <td>Trump Win, Harris Win, Popular Vote</td>
+          <td>8</td>
+          <td><span class="chip high">8</span></td>
+        </tr>
+        <tr>
+          <td>Geopolitics</td>
+          <td>Iran ceasefire, Ukraine, Israel–Gaza, TikTok ban</td>
+          <td>40+</td>
+          <td><span class="chip high">25+</span></td>
+        </tr>
+        <tr>
+          <td>Elections (International)</td>
+          <td>South Korea, Romania, Ireland, NYC Mayor</td>
+          <td>30+</td>
+          <td><span class="chip med">15+</span></td>
+        </tr>
+        <tr>
+          <td>Crypto &amp; Tech</td>
+          <td>Bitcoin price, Ethereum ETF, Trump coin</td>
+          <td>30+</td>
+          <td><span class="chip high">20+</span></td>
+        </tr>
+        <tr>
+          <td>Other</td>
+          <td>FIFA World Cup, economic indicators</td>
+          <td>70+</td>
+          <td><span class="chip med">20+</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- METHODS -->
+  <section id="methods">
+    <h2>Methods</h2>
+    <ol class="method-steps">
+      <li>
+        <div>
+          <strong>Event study windows.</strong> For each comment, find the nearest observed YES-token price
+          strictly before the comment and the nearest at or after the comment, within a ±7-day window.
+          <em>price_change = price_after − price_before.</em> Median gap: ~25 hours on each side,
+          confirming the 7-day window is not binding for most events.
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong>Whale tagging.</strong> Cross-reference each commenter's wallet address against the
+          top-200 holders list. A comment is a "whale event" if the commenter holds ≥ $5,000 in the market.
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong>VADER sentiment.</strong> Each comment body is scored using the VADER lexicon
+          (Hutto &amp; Gilbert 2014), producing a compound score ∈ [−1, +1].
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong>Pooled OLS (market fixed effects).</strong> DV = signed price change after each comment. Tests whether whale events predict larger moves, controlling for each market's baseline behavior.
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong>Cross-market regression.</strong> DV = difference in mean |Δp| between whale and retail events per market. IV = market volume. Tests whether the whale–retail gap is larger in smaller, thinner markets.
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong>Position-direction analysis.</strong> Classify each whale as YES or NO holder
+          (from outcomeIndex in holder data). Test whether comments are sentiment-consistent with
+          position, and whether prices moved in the whale's financial favor.
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="results">
+    <h2>Results</h2>
+
+    <figure class="figure">
+      <img src="fig1_price_trajectories.png" alt="Price trajectories for markets" />
+      <figcaption>
+        <strong>Figure 1.</strong> YES-token price trajectories for six representative markets. Red dots mark whale comment events. The sample spans a wide range of market types and price dynamics — some markets resolve sharply on a single date (elections), others drift gradually (geopolitical questions). Whale events are not uniformly distributed across time; they cluster near periods of price movement.
+      </figcaption>
+    </figure>
+
+    <figure class="figure">
+      <img src="fig2_event_study_by_market.png" alt="Event study results" />
+      <figcaption>
+        <strong>Figure 2.</strong> Mean |Δp| by market volume quintile for whale vs. retail comments (± 1 SE). The whale–retail gap is largest in the highest-volume quintile and smallest in the thinnest markets. A manipulation story would predict the reverse. One interpretation is that whale commenters in large markets (US elections, geopolitical events) are more likely to be active around major news days, when prices swing for everyone regardless of who comments.
+      </figcaption>
+    </figure>
+
+    <h3>Pooled OLS Regression Results</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Variable</th>
+            <th>M1 (FE)</th>
+            <th>M2 (FE + sent.)</th>
+            <th>M3 (Vol. int.)</th>
+            <th>M4 (Position)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="section-head"><td colspan="5">Main effects</td></tr>
+          <tr>
+            <td>Whale comment (0/1)</td>
+            <td class="sig3">+0.0200<br><span class="se">(0.00207)</span></td>
+            <td class="sig3">+0.0200<br><span class="se">(0.00207)</span></td>
+            <td>+0.0475<br><span class="se">(0.0396)</span></td>
+            <td class="sig3">−2.013<br><span class="se">(0.187)</span></td>
+          </tr>
+          <tr>
+            <td>Sentiment (VADER compound)</td>
+            <td>—</td>
+            <td>+0.000490<br><span class="se">(0.000390)</span></td>
+            <td class="sig3">−0.00422<br><span class="se">(0.000540)</span></td>
+            <td>−0.00813<br><span class="se">(0.00863)</span></td>
+          </tr>
+          <tr>
+            <td>log₁₀(Volume)</td>
+            <td>—</td>
+            <td>—</td>
+            <td class="sig3">−0.0240<br><span class="se">(0.000300)</span></td>
+            <td class="sig3">−0.296<br><span class="se">(0.0247)</span></td>
+          </tr>
+          <tr class="section-head"><td colspan="5">Interaction</td></tr>
+          <tr>
+            <td>Whale × log(Volume)</td>
+            <td>—</td>
+            <td>—</td>
+            <td>−0.000950 <em style="font-size:.8rem;color:var(--muted)">(p = 0.85)</em><br><span class="se">(0.00496)</span></td>
+            <td class="sig3">+0.277<br><span class="se">(0.0255)</span></td>
+          </tr>
+          <tr>
+            <td>log₁₀(Position size)</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td class="sig3">−0.0269<br><span class="se">(0.00564)</span></td>
+          </tr>
+          <tr class="section-head"><td colspan="5">Controls</td></tr>
+          <tr>
+            <td>Market fixed effects</td>
+            <td>✓</td>
+            <td>✓</td>
+            <td>—</td>
+            <td>—</td>
+          </tr>
+          <tr class="fit-row">
+            <td>N</td>
+            <td>511,893</td>
+            <td>511,893</td>
+            <td>511,893</td>
+            <td>7,582</td>
+          </tr>
+          <tr class="fit-row">
+            <td>R²</td>
+            <td>0.483</td>
+            <td>0.483</td>
+            <td>0.014</td>
+            <td>0.032</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.82rem;color:var(--muted)">HC3 standard errors in parentheses. * p&lt;0.05; ** p&lt;0.01; *** p&lt;0.001. M4 restricts to observations with known position size. Market FE and log(Volume) are mutually exclusive in M3–M4.</p>
+
+    <figure class="figure">
+      <img src="fig3_sentiment_analysis.png" alt="Absolute price impact by volume quintile" />
+      <figcaption>
+        <strong>Figure 3.</strong> Mean |Δp| by market volume quintile, whale vs. retail (± 1 SE). The pattern here is the main empirical puzzle: the whale–retail gap is concentrated in the largest markets, not the smallest. If whales were moving prices by commenting, you would expect the effect to be strongest where order books are thinnest and a single trade or comment could shift the price. The observed pattern is more consistent with selective timing — whales commenting during already-volatile periods — though this interpretation cannot be fully verified without a stronger identification strategy.
+      </figcaption>
+    </figure>
+
+    <figure class="figure">
+      <img src="fig4_pump_dump.png" alt="Sentiment consistent with position — whale comment events" />
+      <figcaption>
+        <strong>Figure 4.</strong> Breakdown of whale comment events by VADER sentiment category and holder direction (YES vs. NO). Among 4,910 events with identifiable holder direction, comment sentiment was consistent with the commenter's financial position in 52.8% of cases. NO holders (those holding shares that pay out if the event does <em>not</em> occur) posted positive sentiment in 57.9% of their events — the opposite of what a pump-and-dump story would predict. The overall consistency rate is close enough to 50% that it provides little evidence of systematic strategic sentiment.
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- DISCUSSION -->
+  <section id="discussion">
+    <h2>Discussion</h2>
+
+    <p>
+      The raw gap is real: mean |Δp| is 0.21 around whale comments versus 0.10 for retail across 503,662
+      events. Whether this gap reflects any effect of the comment itself is harder to say. The pattern in
+      Figure 3 — where the gap is largest in the highest-volume markets — is not what a manipulation or
+      herding story would predict, and the volume interaction in M3 (β = −0.001, p = 0.85) gives no
+      support to the idea that whale comments are more influential in thinner markets. Taken together,
+      these patterns are more consistent with selective timing than with price impact: whales appear to be
+      more active around periods when prices are already moving, not causing them to move.
+    </p>
+
+    <p>
+      The position-consistency analysis offers a second angle. If whales were deliberately using comments
+      to shift prices in their favor, you would expect their sentiment to track their holdings. At 52.8%,
+      the consistency rate is close to chance. The NO-holder result is particularly notable: those holding
+      shares that pay off only if the event <em>does not</em> occur posted positive sentiment 57.9% of the
+      time, which goes in the wrong direction for a pump-and-dump story. This is a descriptive finding and
+      could reflect any number of things — NO holders may genuinely believe positive outcomes are possible,
+      or may be commenting on other topics — but it does not support systematic strategic behavior.
+    </p>
+
+    <div class="callout">
+      <strong>Caveat on causal inference:</strong> This is an observational study using a nearest-neighbor
+      event window design. The main identification concern — that whales comment precisely when news
+      breaks, and that news is what actually moves prices — cannot be resolved without an exogenous source
+      of variation in comment timing. The results rule out some specific mechanisms (thin-market
+      manipulation, volume-mediated herding) but cannot rule out confounding in general. The findings
+      should be read as descriptive evidence about how whale and retail comment events differ, not as
+      estimates of the causal effect of commenting.
+    </div>
+
+    <h3>Limitations</h3>
+    <p>
+      Several data constraints limit interpretation. Holder position data is a snapshot taken at or near
+      market close, not at the time of the comment; a whale's position may have changed between the
+      snapshot and the comment. The nearest-neighbor price window (median ~25 hours) is broader than
+      ideal — price moves attributed to a comment may reflect many other events within that day. Some
+      markets in the sample have very few whale events, making within-market estimates noisy. Finally,
+      VADER sentiment applied to prediction-market language is imperfect; even with a custom lexicon,
+      many comments are short, ambiguous, or use domain-specific slang that VADER may misclassify.
+    </p>
+    <p>
+      More useful future work would use minute-level price data to tighten the event window, match
+      whale comment days to non-comment days with similar prior price volatility as a control, and
+      obtain historical holder snapshots at comment time rather than at resolution.
+    </p>
+  </section>
+
+</main>
+
+<footer>
+  <p>Charlie Fisher · QSS 20 Final Project · Dartmouth College · 2026</p>
+  <p style="margin-top:.4rem">
+    Data: <a href="https://polymarket.com" target="_blank">Polymarket</a> public APIs ·
+    Code &amp; Data: <a href="https://github.com/CharlesFisher27/polymarket-whale-analysis" target="_blank">GitHub</a> ·
+    Built with Python, statsmodels, matplotlib
+  </p>
+</footer>
+
+</body>
+</html>
